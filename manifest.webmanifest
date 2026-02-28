@@ -1,7 +1,7 @@
 {
-  "name": "Calendário Medicina 2026",
-  "short_name": "Calendário",
-  "start_url": "./index.html",
+  "name": "Calendário Medicina 2026 • 1ºSM",
+  "short_name": "1ºSM 2026",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#f2f7f3",
   "theme_color": "#22c55e",
