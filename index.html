@@ -1755,38 +1755,50 @@ render();
 })();
 
 // PWA: instalar + service worker
+// ===== PWA: botão instalar que funciona sempre =====
 let deferredPrompt = null;
-window.addEventListener("beforeinstallprompt", (e)=>{
+
+window.addEventListener("beforeinstallprompt", (e) => {
   e.preventDefault();
-  deferredPrompt = e;
-  const b = document.getElementById("installBtn");
-  if(b) b.style.display = "inline-flex";
+  deferredPrompt = e; // guardamos o prompt quando existir
 });
-async function triggerInstall(){
-  if(!deferredPrompt) return;
-  deferredPrompt.prompt();
-  try{ await deferredPrompt.userChoice; }catch(e){}
-  deferredPrompt = null;
-  const b = document.getElementById("installBtn");
-  if(b) b.style.display = "none";
+
+function isIOS() {
+  return /iphone|ipad|ipod/i.test(navigator.userAgent);
 }
-(function registerSW(){
-  if("serviceWorker" in navigator){
-    window.addEventListener("load", ()=>{
-      navigator.serviceWorker.register("./sw.js").catch(()=>{});
-    });
+function isStandalone() {
+  return (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || window.navigator.standalone;
+}
+
+async function triggerInstall() {
+  // iPhone: não existe prompt, então só instrução
+  if (isIOS() && !isStandalone()) {
+    const hint = document.getElementById("iosHint");
+    if (hint) hint.style.display = "block";
+    alert("No iPhone: Compartilhar → Adicionar à Tela de Início.");
+    return;
   }
-  const b = document.getElementById("installBtn");
-  if(b) b.addEventListener("click", triggerInstall);
-})();
-(function iosHint(){
-  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
-  const isStandalone = window.matchMedia && window.matchMedia("(display-mode: standalone)").matches;
+
+  // Android/Chrome: se o prompt existir, chama
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    try { await deferredPrompt.userChoice; } catch (e) {}
+    deferredPrompt = null;
+    return;
+  }
+
+  // fallback quando o Chrome não oferece prompt (ex.: já instalado antes)
+  alert("Para instalar: no Chrome, toque em ⋮ (menu) → “Instalar app” / “Adicionar à tela inicial”.");
+}
+
+window.addEventListener("load", () => {
+  const btn = document.getElementById("installBtn");
+  if (btn) btn.addEventListener("click", triggerInstall);
+
+  // mostra dica no iPhone automaticamente (quando não está instalado)
   const hint = document.getElementById("iosHint");
-  if(isIOS && !isStandalone && hint){
-    hint.style.display = "block";
-  }
-})();
+  if (hint && isIOS() && !isStandalone()) hint.style.display = "block";
+});
 
 
 /* =====================
